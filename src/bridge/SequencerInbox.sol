@@ -311,8 +311,7 @@ contract SequencerInbox is DelegateCallAware, GasRefundEnabled, ISequencerInbox 
         uint256 __totalDelayedMessagesRead = _totalDelayedMessagesRead;
         uint256 prevSeqMsgCount = bridge.sequencerReportedSubMessageCount();
         uint256 newSeqMsgCount = prevSeqMsgCount; // force inclusion should not modify sequencer message count
-        (uint256 seqMessageIndex, bytes32 beforeAcc, bytes32 delayedAcc, bytes32 afterAcc) =
-        addSequencerL2BatchImpl(
+        (uint256 seqMessageIndex, bytes32 beforeAcc, bytes32 delayedAcc, bytes32 afterAcc) = addSequencerL2BatchImpl(
             dataHash, __totalDelayedMessagesRead, 0, prevSeqMsgCount, newSeqMsgCount
         );
         emit SequencerBatchDelivered(
@@ -420,8 +419,7 @@ contract SequencerInbox is DelegateCallAware, GasRefundEnabled, ISequencerInbox 
         // we use addSequencerL2BatchImpl for submitting the message
         // normally this would also submit a batch spending report but that is skipped if we pass
         // an empty call data size, then we submit a separate batch spending report later
-        (uint256 seqMessageIndex, bytes32 beforeAcc, bytes32 delayedAcc, bytes32 afterAcc) =
-        addSequencerL2BatchImpl(
+        (uint256 seqMessageIndex, bytes32 beforeAcc, bytes32 delayedAcc, bytes32 afterAcc) = addSequencerL2BatchImpl(
             dataHash, afterDelayedMessagesRead, 0, prevMessageCount, newMessageCount
         );
 
@@ -463,8 +461,7 @@ contract SequencerInbox is DelegateCallAware, GasRefundEnabled, ISequencerInbox 
     ) internal {
         (bytes32 dataHash, IBridge.TimeBounds memory timeBounds) =
             formCallDataHash(data, afterDelayedMessagesRead);
-        (uint256 seqMessageIndex, bytes32 beforeAcc, bytes32 delayedAcc, bytes32 afterAcc) =
-        addSequencerL2BatchImpl(
+        (uint256 seqMessageIndex, bytes32 beforeAcc, bytes32 delayedAcc, bytes32 afterAcc) = addSequencerL2BatchImpl(
             dataHash,
             afterDelayedMessagesRead,
             isFromCodelessOrigin ? data.length : 0,
@@ -540,11 +537,9 @@ contract SequencerInbox is DelegateCallAware, GasRefundEnabled, ISequencerInbox 
                 // delayedAcc of the 1st new delayed message
                 bytes32 delayedAcc = bridge.delayedInboxAccs(totalDelayedMessagesRead);
                 // validate delayProof against the delayed accumulator
-                if (
-                    !Messages.isValidDelayedAccPreimage(
+                if (!Messages.isValidDelayedAccPreimage(
                         delayedAcc, delayProof.beforeDelayedAcc, delayProof.delayedMessage
-                    )
-                ) {
+                    )) {
                     revert InvalidDelayedAccPreimage();
                 }
                 buffer.update(delayProof.delayedMessage.blockNumber);
@@ -717,6 +712,7 @@ contract SequencerInbox is DelegateCallAware, GasRefundEnabled, ISequencerInbox 
         uint256 newMessageCount
     )
         internal
+        virtual
         returns (uint256 seqMessageIndex, bytes32 beforeAcc, bytes32 delayedAcc, bytes32 acc)
     {
         if (afterDelayedMessagesRead < totalDelayedMessagesRead) revert DelayedBackwards();
